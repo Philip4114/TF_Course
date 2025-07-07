@@ -6,6 +6,7 @@ data "aws_ami" "app_ami" {
     values = [var.ami_filter.name]
   }
 
+
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
