@@ -43,19 +43,26 @@ resource "aws_launch_template" "blog" {
   name_prefix                 = "Trial_TF_Course"
   image_id                    = data.aws_ami.app_ami.id
   instance_type               = var.instance_type
-
+  name                        = 
   vpc_security_group_ids             = [module.blog_sg.security_group_id]
   
   #lifecycle {
   #  create_before_destroy     = true
   #}
+  
+  tag_specifications {
+  resource_type = "instance"
+    tags = {
+      Name = "web-server-${instance id}" # Or use instance ID
+    }
+  }
 }
 
     resource "aws_autoscaling_group" "blog-asg" {
       name                 = "blog-asg-TF-course"
       #availability_zones   = ["us-east-1a","us-east-1b","us-east-1c"]
-      desired_capacity     = 2
-      max_size             = 2
+      desired_capacity     = 1
+      max_size             = 3
       min_size             = 1
       health_check_type    = "EC2"
       vpc_zone_identifier  = module.blog_vpc.public_subnets
