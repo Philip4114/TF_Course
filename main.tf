@@ -34,6 +34,11 @@ resource "aws_lb_target_group" "blog-asg" {
   vpc_id = module.blog_vpc.vpc_id
 }
 
+resource "aws_autoscaling_attachment" "blog-asg" {
+  autoscaling_group_name = aws_autoscaling_group.blog-asg.id
+  lb_target_group_arn = aws_lb_target_group.blog-asg.arn
+}
+
 resource "aws_launch_configuration" "blog" {
   name_prefix                 = "Trial_TF_Course"
   image_id                    = data.aws_ami.app_ami.id
@@ -44,11 +49,6 @@ resource "aws_launch_configuration" "blog" {
   lifecycle {
     create_before_destroy     = true
   }
-}
-
-resource "aws_autoscaling_attachment" "blog-asg" {
-  autoscaling_group_name = aws_autoscaling_group.blog-asg.id
-  aws_lb_target_group_arn = aws_lb_target_group.blog-asg.arn
 }
 
 resource "aws_autoscaling_group" "blog-asg" {
