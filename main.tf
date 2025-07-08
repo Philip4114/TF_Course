@@ -32,7 +32,6 @@ resource "aws_launch_configuration" "blog" {
   image_id                    = data.aws_ami.app_ami.id
   instance_type               = var.instance_type
 
-  subnet_id                   = module.blog_vpc.public_subnets[0]
   security_groups             = [module.blog_sg.security_group_id]
   
   lifecycle {
