@@ -44,7 +44,7 @@ resource "aws_launch_template" "blog" {
   image_id                    = data.aws_ami.app_ami.id
   instance_type               = var.instance_type
 
-  security_groups             = [module.blog_sg.security_group_id]
+  vpc_security_group_ids             = [module.blog_sg.security_group_id]
   
   #lifecycle {
   #  create_before_destroy     = true
