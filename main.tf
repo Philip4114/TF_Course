@@ -67,7 +67,7 @@ resource "aws_lb" "blog-alb" {
 }
 
 resource "aws_lb_listener" "blog" {
-  load_balancer__arn = aws_lb.blog-alb.arn
+  load_balancer_arn = aws_lb.blog-alb.arn
   port = "80"
   protocol = "HTTP"
 
