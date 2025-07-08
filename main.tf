@@ -95,7 +95,7 @@ module "blog_alb" {
 
 
 resource "aws_lb_target_group" "blog" {
-    name_prefix             = "blog-tg"
+    name_prefix             = "blg-tg"
     protocol                = "HTTP"
     port                    = 80
     target_type             = "instance"
