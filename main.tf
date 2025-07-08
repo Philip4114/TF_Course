@@ -32,10 +32,10 @@ module "blog_vpc" {
 }
 
 resource "aws_autoscaling_group" "blog" {
-  name = "blog-asg"
-  target_group_arns   = module.blog_alb.target_group_arns
-  max_size = 2
-  min_size = 1
+  name                = "blog-asg-resource"
+  target_group_arns   = [aws_lb_target_group.blog.arn]
+  max_size            = 2
+  min_size            = 1
 }
 
 module "autoscaling" {
@@ -87,15 +87,24 @@ module "blog_alb" {
 #    }
   }
 
-  target_groups        = {
-    ex-instance        = {
-      name_prefix      = "blog-"
-      protocol         = "HTTP"
-      port             = 80
-      target_type      = "instance"
-      target_id        = aws_instance.blog.id
+  resource "aws_lb_target_group" "blog" {
+      name_prefix             = "blog-tg"
+      protocol                = "HTTP"
+      port                    = 80
+      target_type             = "instance"
+      vpc_id                  = module.blog_vpc.vpc_id
     }
   }
+
+#  target_groups        = {
+#    ex-instance        = {
+#      name_prefix      = "blog-"
+#      protocol         = "HTTP"
+#      port             = 80
+#      target_type      = "instance"
+#      target_id        = aws_instance.blog.id
+#    }
+#  }
 
   tags           = {
     Environment  = "Development"
