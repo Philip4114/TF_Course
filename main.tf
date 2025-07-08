@@ -53,8 +53,8 @@ resource "aws_launch_template" "blog" {
 
     resource "aws_autoscaling_group" "blog-asg" {
       name                 = "blog-asg-TF-course"
-      availability_zones   = ["us-east-1a","us-east-1b","us-east-1c"]
-      #desired_capacity     = 2
+      #availability_zones   = ["us-east-1a","us-east-1b","us-east-1c"]
+      desired_capacity     = 2
       max_size             = 2
       min_size             = 1
       health_check_type    = "EC2"
