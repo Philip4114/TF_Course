@@ -51,7 +51,7 @@ resource "aws_autoscaling_attachment" "blog-asg" {
   aws_lb_target_group_arn = aws_lb_target_group.blog-asg.arn
 }
 
-resource "aws_autoscaling_group" "blog" {
+resource "aws_autoscaling_group" "blog-asg" {
   min_size = 1
   max_size = 3
   launch_configuration = aws_launch_configuration.blog.name
