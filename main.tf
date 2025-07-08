@@ -87,14 +87,21 @@ module "blog_alb" {
 #    }
   }
 
-  resource "aws_lb_target_group" "blog" {
-      name_prefix             = "blog-tg"
-      protocol                = "HTTP"
-      port                    = 80
-      target_type             = "instance"
-      vpc_id                  = module.blog_vpc.vpc_id
-    }
+  tags           = {
+    Environment  = "Development"
+#    Project     = "Example"
   }
+}
+
+
+resource "aws_lb_target_group" "blog" {
+    name_prefix             = "blog-tg"
+    protocol                = "HTTP"
+    port                    = 80
+    target_type             = "instance"
+    vpc_id                  = module.blog_vpc.vpc_id
+  }
+
 
 #  target_groups        = {
 #    ex-instance        = {
@@ -106,11 +113,7 @@ module "blog_alb" {
 #    }
 #  }
 
-  tags           = {
-    Environment  = "Development"
-#    Project     = "Example"
-  }
-}
+ 
 
 module "blog_sg" {
   source  = "terraform-aws-modules/security-group/aws"
