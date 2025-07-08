@@ -27,82 +27,59 @@ module "blog_vpc" {
   }
 }
 
-resource "aws_instance" "blog" {
+resource "aws_launch_configuration" "blog" {
   ami                    = data.aws_ami.app_ami.id
   instance_type          = var.instance_type
 
   subnet_id              = module.blog_vpc.public_subnets[0]
   vpc_security_group_ids = [module.blog_sg.security_group_id]
-
-  tags = {
-    Name = "Learning Terraform"
+  
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
-module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "9.0.1"
-  
-  name = "blog"
-  
-  min_size = 1
-  max_size = 2
-  
+resource "aws_lb_target_group" "blog-asg" {
+  name = "my-alb"
+  port = 80
+  protocol = "HTTP"
+  vpc_id = module.blog_vpc.vpc_id
+}
+
+resource "aws_autoscaling_attachment" "blog-asg" {
+  autoscaling_group_name = aws_autoscaling_group.blog-asg.id
+  aws_lb_target_group_arn = aws_lb_target_group.blog-asg.arn
+}
+
+resource "aws_autoscaling_group" "blog" {
+  mis_size = 1
+  max_size = 3
+  launch_configuration = aws_launch_configuration.blog.name
   vpc_zone_identifier = module.blog_vpc.public_subnets
-  target_group_arns = module.blog_alb.target_groups["ex-instance"].arns
-  security_groups = [module.blog_sg.security_group_id]
-
 }
 
-module "blog-alb" {
-  source = "terraform-aws-modules/alb/aws"
-
-
+resource "aws_lb" "blog-alb" {
   name    = "my-alb"
-
-
-
-  vpc_id  = module.blog_vpc.vpc_id
-  subnets = module.blog_vpc.public_subnets
-
+  internal = false
+  load_balancer_type = "application"
   security_groups = [module.blog_sg.security_group_id]
+  subnets = module.blog_vpc.public_subnets
+}
 
-  listeners = {
-    ex-http-https-redirect = {
-      port     = 80
-      protocol = "HTTP"
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-#    ex-https = {
-#      port            = 443
-#      protocol        = "HTTPS"
-#      certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
-#
-#      forward = {
-#        target_group_key = "ex-instance"
-#      }
-#    }
-  }
+resource "aws_lb_listener" "blog" {
+  load_balancer__arn = aws_lb.blog-alb.arn
+  port = "80"
+  protocol = "HTTP"
 
-  target_groups = {
-    ex-instance = {
-      name_prefix      = "blog-"
-      protocol         = "HTTP"
-      port             = 80
-      target_type      = "instance"
-      target_id        = aws_instance.blog.id
-    }
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.blog-asg.arn
   }
+}
 
   tags = {
     Environment = "Development"
-#    Project     = "Example"
   }
-}
 
 module "blog_sg" {
   source  = "terraform-aws-modules/security-group/aws"
