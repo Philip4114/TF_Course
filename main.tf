@@ -43,19 +43,19 @@ resource "aws_launch_template" "blog" {
   name_prefix                 = "Trial_TF_Course"
   image_id                    = data.aws_ami.app_ami.id
   instance_type               = var.instance_type
-  name                        = "web-server-${instance id}"
+#  name                        = "web-server-${instance id}"
   vpc_security_group_ids      = [module.blog_sg.security_group_id]
   
   #lifecycle {
   #  create_before_destroy     = true
   #}
   
-#  tag_specifications {
-#  resource_type = "instance"
-#    tags = {
-#      Name = "web-server-${instance id}" # Or use instance ID
-#    }
-#  }
+  tag_specifications {
+  resource_type = "instance"
+    tags = {
+      Name = "web-server-${instance id}" # Or use instance ID
+    }
+  }
 }
 
     resource "aws_autoscaling_group" "blog-asg" {
