@@ -1,128 +1,211 @@
 data "aws_ami" "app_ami" {
+
   most_recent = true
 
-  filter {
-    name   = "name"
-    values = ["bitnami-tomcat-*-x86_64-hvm-ebs-nami"]
-  }
+
 
   filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+
+    name   = "name"
+
+    values = ["bitnami-tomcat-*-x86_64-hvm-ebs-nami"]
+
   }
+
+
+
+  filter {
+
+    name   = "virtualization-type"
+
+    values = ["hvm"]
+
+  }
+
+
 
   owners = ["979382823631"] # Bitnami
+
 }
+
+
+
 
 
 module "blog_vpc" {
+
   source = "terraform-aws-modules/vpc/aws"
 
+
+
   name = "dev"
+
   cidr = "10.0.0.0/16"
 
+
+
   azs             = ["us-east-1a","us-east-1b","us-east-1c"]
-  
+
+
+
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 
-  tags          = {
-    Terraform   = "true"
+
+
+  tags = {
+
+    Terraform = "true"
+
     Environment = "dev"
+
   }
+
 }
 
-resource "aws_autoscaling_group" "blog" {
-  name                = "blog-asg-resource"
-  target_group_arns   = [aws_lb_target_group.blog.arn]
-  max_size            = 2
-  min_size            = 1
-}
 
-module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "9.0.1"
 
-  name     = "blog-asg"
-  min_size = 1
-  max_size = 2
+resource "aws_instance" "blog" {
 
-  vpc_zone_identifier = module.blog_vpc.public_subnets
-#  target_group_arns   = module.blog_alb.target_group_arns
-  security_groups     = [module.blog_sg.security_group_id]
+  ami                    = data.aws_ami.app_ami.id
 
-  image_id               = data.aws_ami.app_ami.id
   instance_type          = var.instance_type
+
+
+
+  subnet_id              = module.blog_vpc.public_subnets[0]
+
+  vpc_security_group_ids = [module.blog_sg.security_group_id]
+
+
+
+  tags = {
+
+    Name = "Learning Terraform"
+
+  }
+
 }
 
-module "blog_alb" {
+
+
+module "blog-alb" {
+
   source = "terraform-aws-modules/alb/aws"
+
+
+
 
 
   name    = "my-alb"
 
 
 
-  vpc_id          = module.blog_vpc.vpc_id
-  subnets         = module.blog_vpc.public_subnets
+
+
+
+
+  vpc_id  = module.blog_vpc.vpc_id
+
+  subnets = module.blog_vpc.public_subnets
+
+
+  security_groups = [mdule.blog_sg.security_group_id]
+
+
   security_groups = [module.blog_sg.security_group_id]
 
+
+
   listeners = {
+
     ex-http-https-redirect = {
-      port                 = 80
-      protocol             = "HTTP"
-      redirect             = {
-        port               = "443"
-        protocol           = "HTTPS"
-        status_code        = "HTTP_301"
+
+      port     = 80
+
+      protocol = "HTTP"
+
+      redirect = {
+
+        port        = "443"
+
+        protocol    = "HTTPS"
+
+        status_code = "HTTP_301"
+
       }
+
     }
-#    ex-https          = {
+
+#    ex-https = {
+
 #      port            = 443
+
 #      protocol        = "HTTPS"
+
 #      certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+
 #
-#      forward            = {
+
+#      forward = {
+
 #        target_group_key = "ex-instance"
+
 #      }
+
 #    }
+
   }
 
-  tags           = {
-    Environment  = "Development"
-#    Project     = "Example"
+
+
+  target_groups = {
+
+    ex-instance = {
+
+      name_prefix      = "blog-"
+
+      protocol         = "HTTP"
+
+      port             = 80
+
+      target_type      = "instance"
+
+      target_id        = aws_instance.blog.id
+
+    }
+
   }
+
+
+
+  tags = {
+
+    Environment = "Development"
+
+#    Project     = "Example"
+
+  }
+
 }
 
 
-resource "aws_lb_target_group" "blog" {
-    name_prefix             = "blg-tg"
-    protocol                = "HTTP"
-    port                    = 80
-    target_type             = "instance"
-    vpc_id                  = module.blog_vpc.vpc_id
-  }
-
-
-#  target_groups        = {
-#    ex-instance        = {
-#      name_prefix      = "blog-"
-#      protocol         = "HTTP"
-#      port             = 80
-#      target_type      = "instance"
-#      target_id        = aws_instance.blog.id
-#    }
-#  }
-
- 
 
 module "blog_sg" {
+
   source  = "terraform-aws-modules/security-group/aws"
+
   version = "4.13.0"
 
+
+
   vpc_id              = module.blog_vpc.vpc_id
+
   name                = "blog"
+
   ingress_rules       = ["https-443-tcp","http-80-tcp"]
+
   ingress_cidr_blocks = ["0.0.0.0/0"]
+
   egress_rules        = ["all-all"]
+
   egress_cidr_blocks  = ["0.0.0.0/0"]
-}
