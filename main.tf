@@ -77,10 +77,6 @@ resource "aws_lb_listener" "blog" {
   }
 }
 
-  tags = {
-    Environment = "Development"
-  }
-
 module "blog_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "4.13.0"
