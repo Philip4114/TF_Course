@@ -53,7 +53,7 @@ resource "aws_launch_template" "blog" {
   tag_specifications {
   resource_type = "instance"
     tags = {
-      Name = "web-server-${count.index}" # Or use instance ID
+      Name = "TF-"
     }
   }
 }
