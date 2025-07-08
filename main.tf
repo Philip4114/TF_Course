@@ -38,7 +38,7 @@ resource "aws_autoscaling_group" "blog" {
   min_size = 1
 }
 
-module "autoscaling" {
+#module "autoscaling" {
 resource "aws_autoscaling_group" "blog" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "9.0.1"
