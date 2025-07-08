@@ -39,24 +39,31 @@ resource "aws_autoscaling_attachment" "blog-asg" {
   lb_target_group_arn = aws_lb_target_group.blog-asg.arn
 }
 
-resource "aws_launch_configuration" "blog" {
+resource "aws_launch_template" "blog" {
   name_prefix                 = "Trial_TF_Course"
   image_id                    = data.aws_ami.app_ami.id
   instance_type               = var.instance_type
 
   security_groups             = [module.blog_sg.security_group_id]
   
-  lifecycle {
-    create_before_destroy     = true
-  }
+  #lifecycle {
+  #  create_before_destroy     = true
+  #}
 }
 
-resource "aws_autoscaling_group" "blog-asg" {
-  min_size = 1
-  max_size = 3
-  launch_configuration = aws_launch_configuration.blog.name
-  vpc_zone_identifier = module.blog_vpc.public_subnets
-}
+    resource "aws_autoscaling_group" "blog" {
+      name                 = "blog-asg"
+      availability_zones   = ["us-east-1a","us-east-1b","us-east-1c"]
+      #desired_capacity     = 2
+      max_size             = 2
+      min_size             = 1
+      health_check_type    = "EC2"
+      vpc_zone_identifier  = module.blog_vpc.public_subnets
+      launch_template {
+        id      = aws_launch_template.blog.id
+        version = "$Latest"
+      }
+    }
 
 resource "aws_lb" "blog-alb" {
   name    = "my-alb"
