@@ -46,11 +46,6 @@ resource "aws_lb_target_group" "blog-asg" {
   vpc_id = module.blog_vpc.vpc_id
 }
 
-resource "aws_autoscaling_attachment" "blog-asg" {
-  autoscaling_group_name = aws_autoscaling_group.blog-asg.id
-  aws_lb_target_group_arn = aws_lb_target_group.blog-asg.arn
-}
-
 resource "aws_autoscaling_group" "blog-asg" {
   min_size = 1
   max_size = 3
@@ -75,6 +70,11 @@ resource "aws_lb_listener" "blog" {
     type = "forward"
     target_group_arn = aws_lb_target_group.blog-asg.arn
   }
+}
+
+resource "aws_autoscaling_attachment" "blog-asg" {
+  autoscaling_group_name = aws_autoscaling_group.blog-asg.id
+  aws_lb_target_group_arn = aws_lb_target_group.blog-asg.arn
 }
 
 module "blog_sg" {
