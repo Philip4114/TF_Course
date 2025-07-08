@@ -52,7 +52,7 @@ resource "aws_autoscaling_attachment" "blog-asg" {
 }
 
 resource "aws_autoscaling_group" "blog" {
-  mis_size = 1
+  min_size = 1
   max_size = 3
   launch_configuration = aws_launch_configuration.blog.name
   vpc_zone_identifier = module.blog_vpc.public_subnets
